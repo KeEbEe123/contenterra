@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Card from "./components/Card";
 import Modal from "./components/Modal";
+import data from "../data.json";
 
 type Block = { type: "text" | "code"; content: string };
 
@@ -99,9 +100,6 @@ function parseLegibleBlocks(html: string): Block[] {
 
 
 export default function Home() {
-  const [listing, setListing] = useState<any | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
   const [open, setOpen] = useState(false);
   const [modalData, setModalData] = useState<{
     title: string;
@@ -110,30 +108,7 @@ export default function Home() {
     blocks: Block[];
   } | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        setLoading(true);
-        const res = await fetch("/data.json");
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        if (!cancelled) setListing(json);
-      } catch (e: any) {
-        console.error(e);
-        if (!cancelled) setError("Failed to load feed");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-  
-
-  const children: RedditPost[] = (listing?.data?.children as RedditPost[]) ?? [];
+  const children: RedditPost[] = (data?.data?.children as RedditPost[]) ?? [];
 
   return (
     <div className="flex min-h-screen w-full items-start justify-center bg-[var(--background)] py-6">
@@ -144,12 +119,6 @@ export default function Home() {
           </h1>
         </header>
 
-        {loading && (
-          <p className="text-sm text-zinc-400">Loading…</p>
-        )}
-        {error && !loading && (
-          <p className="text-sm text-red-600">{error}</p>
-        )}
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {children.map((child, idx) => (
             <Card
